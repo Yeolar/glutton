@@ -44,11 +44,7 @@ include_directories(
 
 # Work on all sub directories
 add_subdirectory(leveldb)
-
-# Target
-#add_executable(glutton
-#)
-#target_link_libraries(glutton raster glutton_leveldb)
+add_subdirectory(glutton)
 
 # Test
 if(GTEST_FOUND)
