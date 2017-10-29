@@ -20,6 +20,7 @@ set(VERSION_PATCH 0)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
 find_package(GFlags REQUIRED)
+find_package(Raster REQUIRED)
 
 # Optional packages
 find_package(GTest)
@@ -33,6 +34,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O3 -std=c++11 -fPIC")
 link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
     ${GFLAGS_LIBRARIES}
+    ${RASTER_LIBRARIES}
 )
 
 include_directories(
