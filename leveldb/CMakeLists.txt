@@ -40,3 +40,10 @@ set(GLUTTON_LEVELDB_SRCS
 )
 add_library(glutton_leveldb STATIC ${GLUTTON_LEVELDB_SRCS})
 
+add_executable(leveldbutil
+    db/leveldbutil.cc
+)
+target_link_libraries(leveldbutil
+    raster
+    glutton_leveldb
+)
