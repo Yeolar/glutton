@@ -37,6 +37,7 @@ set(GLUTTON_LEVELDB_SRCS
     util/logging.cc
     util/options.cc
     util/status.cc
+    util/testutil.cc
 )
 add_library(glutton_leveldb STATIC ${GLUTTON_LEVELDB_SRCS})
 
@@ -44,6 +45,14 @@ add_executable(leveldbutil
     db/leveldbutil.cc
 )
 target_link_libraries(leveldbutil
+    raster
+    glutton_leveldb
+)
+
+add_executable(db_bench
+    db/db_bench.cc
+)
+target_link_libraries(db_bench
     raster
     glutton_leveldb
 )
