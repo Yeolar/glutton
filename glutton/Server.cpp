@@ -8,7 +8,6 @@
 #include <raster/net/Actor.h>
 #include <raster/protocol/binary/AsyncServer.h>
 #include <raster/util/Logging.h>
-#include <raster/util/ScopeGuard.h>
 #include <raster/util/Signal.h>
 #include <raster/util/Uuid.h>
 #include "CacheManager.h"
@@ -31,6 +30,8 @@ public:
   }
 
   bool process(ByteRange& response, const ByteRange& request) {
+    uint64_t t0 = rdd::timestampNow();
+
     auto query = ::flatbuffers::GetRoot<fbs::Query>(request.data());
     DCHECK(verifyFlatbuffer(query, request));
 
@@ -82,7 +83,23 @@ public:
                             fbb.CreateString(value),
                             code));
     response.reset(fbb.GetBufferPointer(), fbb.GetSize());
+
+    RDDMON_CNT(rdd::to<std::string>(actionName(query)));
+    RDDMON_CNT(rdd::to<std::string>(actionName(query), ".", code));
+    RDDMON_AVG(rdd::to<std::string>(actionName(query), ".cost"),
+               timestampNow() - t0);
     return true;
+  }
+
+private:
+  const char* actionName(const fbs::Query* query) const {
+    switch (query->action()) {
+      case fbs::Action_GET: return "GET";
+      case fbs::Action_PUT: return "PUT";
+      case fbs::Action_DELETE: return "DELETE";
+      case fbs::Action_NONE: return "NONE";
+    }
+    return "";
   }
 };
 
