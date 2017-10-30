@@ -2,9 +2,18 @@
 
 namespace glutton.fbs;
 
+enum Action:int {
+    NONE   = 0,
+    GET    = 1,
+    PUT    = 2,
+    DELETE = 3,
+}
+
 table Query {
     traceid: string;
+    action: Action;
     key: string;
+    value: string;
 }
 
 enum ResultCode:int {
@@ -14,6 +23,8 @@ enum ResultCode:int {
 
     // ERROR        >1000
     E_SOURCE__UNTRUSTED = 1001,
+    E_ACTION__FAILED    = 1002,
+    E_VALUE__NOTFOUND   = 1003,
 }
 
 table Result {

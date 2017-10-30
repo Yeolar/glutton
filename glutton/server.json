@@ -34,6 +34,7 @@
     "prefix": "glutton"
   },
   "glutton": {
-    "root": "data/glutton/"
+    "root": "data/glutton/",
+    "size": 1000000
   }
 }

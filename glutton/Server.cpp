@@ -11,6 +11,8 @@
 #include <raster/util/ScopeGuard.h>
 #include <raster/util/Signal.h>
 #include <raster/util/Uuid.h>
+#include "CacheManager.h"
+#include "Config.h"
 #include "Helper.h"
 #include "glutton_generated.h"
 
@@ -32,7 +34,11 @@ public:
     auto query = ::flatbuffers::GetRoot<fbs::Query>(request.data());
     DCHECK(verifyFlatbuffer(query, request));
 
-    if (!StringPiece(query->traceid()->str()).startsWith("rdd")) {
+    auto traceid = query->traceid()->str();
+    auto key = query->key()->str();
+    auto value = query->value()->str();
+
+    if (!StringPiece(traceid).startsWith("rdd")) {
       RDDLOG(INFO) << "untrusted request: [" << query->traceid() << "]";
       ::flatbuffers::FlatBufferBuilder fbb;
       fbb.Finish(CreateResult(fbb, 0, fbs::ResultCode_E_SOURCE__UNTRUSTED));
@@ -40,11 +46,35 @@ public:
       return true;
     }
 
-    auto traceid = generateUuid(query->traceid()->str(), "rddg");
-    std::string value;
+    traceid = generateUuid(traceid, "rddg");
+
+    auto cache = Singleton<CacheManager>::get();
     fbs::ResultCode code = fbs::ResultCode_OK;
 
-    RDDTLOG(INFO, traceid) << "key: \"" << query->key()->str() << "\""
+    switch (query->action()) {
+      case fbs::Action_GET: {
+          if (!cache->get(key, value)) {
+            code = fbs::ResultCode_E_VALUE__NOTFOUND;
+          }
+        }
+        break;
+      case fbs::Action_PUT: {
+          if (!cache->put(key, range(value))) {
+            code = fbs::ResultCode_E_ACTION__FAILED;
+          }
+        }
+        break;
+      case fbs::Action_DELETE: {
+          if (!cache->erase(key)) {
+            code = fbs::ResultCode_E_ACTION__FAILED;
+          }
+        }
+        break;
+      case fbs::Action_NONE:
+        break;
+    }
+
+    RDDTLOG(INFO, traceid) << "key: \"" << key << "\""
       << " code=" << code;
     ::flatbuffers::FlatBufferBuilder fbb;
     fbb.Finish(CreateResult(fbb,
@@ -80,7 +110,7 @@ int main(int argc, char* argv[]) {
          {configThreadPool, "thread"},
          {configNetCopy, "net.copy"},
          {configMonitor, "monitor"},
-         //{configGlutton, "glutton"}
+         {configGlutton, "glutton"}
          });
 
   RDDLOG(INFO) << "rdd start ... ^_^";

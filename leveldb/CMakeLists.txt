@@ -1,6 +1,7 @@
 # Copyright (C) 2017, Yeolar
 
 set(GLUTTON_LEVELDB_SRCS
+    LevelDBStorage.cpp
     db/builder.cc
     db/dbformat.cc
     db/db_impl.cc

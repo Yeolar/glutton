@@ -13,17 +13,56 @@ struct Query;
 
 struct Result;
 
+enum Action {
+  Action_NONE = 0,
+  Action_GET = 1,
+  Action_PUT = 2,
+  Action_DELETE = 3,
+  Action_MIN = Action_NONE,
+  Action_MAX = Action_DELETE
+};
+
+inline Action (&EnumValuesAction())[4] {
+  static Action values[] = {
+    Action_NONE,
+    Action_GET,
+    Action_PUT,
+    Action_DELETE
+  };
+  return values;
+}
+
+inline const char **EnumNamesAction() {
+  static const char *names[] = {
+    "NONE",
+    "GET",
+    "PUT",
+    "DELETE",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameAction(Action e) {
+  const size_t index = static_cast<int>(e);
+  return EnumNamesAction()[index];
+}
+
 enum ResultCode {
   ResultCode_OK = 0,
   ResultCode_E_SOURCE__UNTRUSTED = 1001,
+  ResultCode_E_ACTION__FAILED = 1002,
+  ResultCode_E_VALUE__NOTFOUND = 1003,
   ResultCode_MIN = ResultCode_OK,
-  ResultCode_MAX = ResultCode_E_SOURCE__UNTRUSTED
+  ResultCode_MAX = ResultCode_E_VALUE__NOTFOUND
 };
 
-inline ResultCode (&EnumValuesResultCode())[2] {
+inline ResultCode (&EnumValuesResultCode())[4] {
   static ResultCode values[] = {
     ResultCode_OK,
-    ResultCode_E_SOURCE__UNTRUSTED
+    ResultCode_E_SOURCE__UNTRUSTED,
+    ResultCode_E_ACTION__FAILED,
+    ResultCode_E_VALUE__NOTFOUND
   };
   return values;
 }
@@ -31,20 +70,31 @@ inline ResultCode (&EnumValuesResultCode())[2] {
 struct Query FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_TRACEID = 4,
-    VT_KEY = 6
+    VT_ACTION = 6,
+    VT_KEY = 8,
+    VT_VALUE = 10
   };
   const flatbuffers::String *traceid() const {
     return GetPointer<const flatbuffers::String *>(VT_TRACEID);
   }
+  Action action() const {
+    return static_cast<Action>(GetField<int32_t>(VT_ACTION, 0));
+  }
   const flatbuffers::String *key() const {
     return GetPointer<const flatbuffers::String *>(VT_KEY);
+  }
+  const flatbuffers::String *value() const {
+    return GetPointer<const flatbuffers::String *>(VT_VALUE);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_TRACEID) &&
            verifier.Verify(traceid()) &&
+           VerifyField<int32_t>(verifier, VT_ACTION) &&
            VerifyOffset(verifier, VT_KEY) &&
            verifier.Verify(key()) &&
+           VerifyOffset(verifier, VT_VALUE) &&
+           verifier.Verify(value()) &&
            verifier.EndTable();
   }
 };
@@ -55,8 +105,14 @@ struct QueryBuilder {
   void add_traceid(flatbuffers::Offset<flatbuffers::String> traceid) {
     fbb_.AddOffset(Query::VT_TRACEID, traceid);
   }
+  void add_action(Action action) {
+    fbb_.AddElement<int32_t>(Query::VT_ACTION, static_cast<int32_t>(action), 0);
+  }
   void add_key(flatbuffers::Offset<flatbuffers::String> key) {
     fbb_.AddOffset(Query::VT_KEY, key);
+  }
+  void add_value(flatbuffers::Offset<flatbuffers::String> value) {
+    fbb_.AddOffset(Query::VT_VALUE, value);
   }
   QueryBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -64,7 +120,7 @@ struct QueryBuilder {
   }
   QueryBuilder &operator=(const QueryBuilder &);
   flatbuffers::Offset<Query> Finish() {
-    const auto end = fbb_.EndTable(start_, 2);
+    const auto end = fbb_.EndTable(start_, 4);
     auto o = flatbuffers::Offset<Query>(end);
     return o;
   }
@@ -73,9 +129,13 @@ struct QueryBuilder {
 inline flatbuffers::Offset<Query> CreateQuery(
     flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> traceid = 0,
-    flatbuffers::Offset<flatbuffers::String> key = 0) {
+    Action action = Action_NONE,
+    flatbuffers::Offset<flatbuffers::String> key = 0,
+    flatbuffers::Offset<flatbuffers::String> value = 0) {
   QueryBuilder builder_(_fbb);
+  builder_.add_value(value);
   builder_.add_key(key);
+  builder_.add_action(action);
   builder_.add_traceid(traceid);
   return builder_.Finish();
 }
@@ -83,11 +143,15 @@ inline flatbuffers::Offset<Query> CreateQuery(
 inline flatbuffers::Offset<Query> CreateQueryDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *traceid = nullptr,
-    const char *key = nullptr) {
+    Action action = Action_NONE,
+    const char *key = nullptr,
+    const char *value = nullptr) {
   return glutton::fbs::CreateQuery(
       _fbb,
       traceid ? _fbb.CreateString(traceid) : 0,
-      key ? _fbb.CreateString(key) : 0);
+      action,
+      key ? _fbb.CreateString(key) : 0,
+      value ? _fbb.CreateString(value) : 0);
 }
 
 struct Result FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
