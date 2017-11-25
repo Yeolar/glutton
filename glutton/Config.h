@@ -8,7 +8,7 @@
 
 namespace glutton {
 
-void configGlutton(const rdd::dynamic& j);
+void configGlutton(const rdd::dynamic& j, bool reload);
 
 }
 

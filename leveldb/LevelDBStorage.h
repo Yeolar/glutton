@@ -5,7 +5,7 @@
 #pragma once
 
 #include <functional>
-#include <raster/io/FSUtil.h>
+#include <memory>
 #include "glutton/Storage.h"
 #include "db/db.h"
 
@@ -15,12 +15,12 @@ namespace glutton {
 
 class LevelDBStorage : public Storage {
 public:
-  static bool destroy(const fs::path& dir);
+  static bool destroy(const std::string& dir);
 
   LevelDBStorage() {}
   virtual ~LevelDBStorage() {}
 
-  virtual bool open(const fs::path& dir);
+  virtual bool open(const std::string& dir);
 
   operator bool() const {
     return db_ != nullptr;

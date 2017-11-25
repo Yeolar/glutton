@@ -8,8 +8,8 @@
 
 namespace glutton {
 
-bool LevelDBStorage::destroy(const fs::path& dir) {
-  leveldb::Status s = leveldb::DestroyDB(dir.string(), leveldb::Options());
+bool LevelDBStorage::destroy(const std::string& dir) {
+  leveldb::Status s = leveldb::DestroyDB(dir, leveldb::Options());
   if (!s.ok()) {
     RDDLOG(ERROR) << "leveldb: destroy " << dir << " error: " << s.ToString();
     return false;
@@ -17,11 +17,11 @@ bool LevelDBStorage::destroy(const fs::path& dir) {
   return true;
 }
 
-bool LevelDBStorage::open(const fs::path& dir) {
+bool LevelDBStorage::open(const std::string& dir) {
   leveldb::Options opt;
   opt.create_if_missing = true;
   leveldb::DB* db;
-  leveldb::Status s = leveldb::DB::Open(opt, dir.string(), &db);
+  leveldb::Status s = leveldb::DB::Open(opt, dir, &db);
   if (!s.ok()) {
     RDDLOG(ERROR) << "leveldb: open " << dir << " error: " << s.ToString();
     return false;

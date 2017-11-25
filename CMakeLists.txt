@@ -21,6 +21,7 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
 find_package(GFlags REQUIRED)
 find_package(Raster REQUIRED)
+find_package(LibEvent REQUIRED)
 
 # Optional packages
 find_package(GTest)
@@ -35,6 +36,7 @@ link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
     ${GFLAGS_LIBRARIES}
     ${RASTER_LIBRARIES}
+    ${LIBEVENT_LIB}
 )
 
 include_directories(
@@ -45,6 +47,7 @@ include_directories(
 # Work on all sub directories
 add_subdirectory(leveldb)
 add_subdirectory(glutton)
+add_subdirectory(glutton/queue)
 
 # Test
 if(GTEST_FOUND)

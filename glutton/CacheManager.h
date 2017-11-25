@@ -13,7 +13,7 @@ class CacheManager {
 public:
   CacheManager() {}
 
-  bool initialize(size_t maxSize, const fs::path& dbDir);
+  bool initialize(size_t maxSize, const std::string& dbDir);
 
   bool get(const std::string& key, std::string& value);
   bool put(const std::string& key, rdd::ByteRange value);

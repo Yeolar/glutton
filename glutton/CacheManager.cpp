@@ -7,7 +7,7 @@
 
 namespace glutton {
 
-bool CacheManager::initialize(size_t maxSize, const fs::path& dbDir) {
+bool CacheManager::initialize(size_t maxSize, const std::string& dbDir) {
   dict_.reset(new MemoryFlatDict<std::string>(maxSize));
   storage_.reset(new LevelDBStorage());
   if (storage_->open(dbDir)) {

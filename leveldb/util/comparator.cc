@@ -3,6 +3,7 @@
 // found in the LICENSE file. See the AUTHORS file for names of contributors.
 
 #include <algorithm>
+#include <mutex>
 #include <stdint.h>
 #include <raster/util/ThreadUtil.h>
 #include "util/comparator.h"
@@ -66,7 +67,7 @@ class BytewiseComparatorImpl : public Comparator {
 };
 }  // namespace
 
-static pthread_once_t once = PTHREAD_ONCE_INIT;
+static std::once_flag once;
 static const Comparator* bytewise;
 
 static void InitModule() {
@@ -74,7 +75,7 @@ static void InitModule() {
 }
 
 const Comparator* BytewiseComparator() {
-  rdd::initOnce(&once, InitModule);
+  std::call_once(once, InitModule);
   return bytewise;
 }
 

@@ -41,18 +41,18 @@ set(GLUTTON_LEVELDB_SRCS
 )
 add_library(glutton_leveldb STATIC ${GLUTTON_LEVELDB_SRCS})
 
-add_executable(leveldbutil
+add_executable(leveldb-util
     db/leveldbutil.cc
 )
-target_link_libraries(leveldbutil
+target_link_libraries(leveldb-util
     raster
     glutton_leveldb
 )
 
-add_executable(db_bench
+add_executable(leveldb-bench
     db/db_bench.cc
 )
-target_link_libraries(db_bench
+target_link_libraries(leveldb-bench
     raster
     glutton_leveldb
 )
